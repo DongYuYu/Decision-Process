@@ -1,11 +1,16 @@
-811790129 Dong Yu
+
 
 
 Instruction:
 
 1.To Compile, simply run>> g++ dp.cpp
 
-2.The following output will be gereated.
+2.The following output will be gereated. Dataset used is decribed here:
+{{-0.05, -0.05, -0.05, +1},
+{-0.05, -0.05, -0.05, -0.05},
+{-0.05, NULL,-0.05, -0.05},
+{-1, -0.05,-0.05, +1}}
+
 3.Policy:
 .>>.
 v.>^
