@@ -1,5 +1,4 @@
 #include<vector>
-//#include<unordered_map>
 #include<set>
 #include<utility>
 #include<map>
@@ -8,23 +7,37 @@
 #include<limits>
 #include<cstdlib>
 #include<stack>
+
+
+/*Implement mdp for UAV problem, including Value, and policy Iteration
+ */ 
+
 using namespace std;
-enum Orientation {left,up, right, down};
-//enum Orientation {right,up,left,down};
+enum Orientation {left, up, right, down};
+
+/*Point is used to for state
+ *
+ */
 class Point{
   int x, y;
 
 public:
   Point(int x, int y):x(x), y(y){
   }
+
   bool operator==(const Point &rhs) const {
-    if (x==rhs.getX() && y ==rhs.getY()) return true;
-    else return false;}
+    if ( x == rhs.getX() && y == rhs.getY()) return true;
+    else return false;
+  }
+
   int getX () const {return x;}
+
   int getY () const {return y;}
+
   Point add(Orientation action){
     int a = x;
     int b = y;
+
     switch(action){
     case ::left: b--; break;
     case ::up: a++; break;
@@ -39,7 +52,7 @@ public:
 };
 
 Orientation turn_left(Orientation action){
-  //cout<<sizeof(Orientation);
+  
   return (Orientation)(action-1+sizeof(Orientation)%sizeof(Orientation));
 }
 
@@ -52,7 +65,7 @@ struct PointCompare
    {
      if (lhs.getX()==rhs.getX()) return lhs.getY()<rhs.getY();
      else return lhs.getX() < rhs.getX();
-     // return lhs.getX() < rhs.getX();
+  
    }
 };
 
@@ -60,8 +73,6 @@ struct OrientationCompare
 {
    bool operator() (const Orientation& lhs, const Orientation& rhs) const
    {
-     //     if (lhs.getX()==rhs.getX()) return lhs.getY()<rhs.getY();
-     // else return lhs.getX() < rhs.getX();
       return lhs < rhs;
    }
 };
@@ -73,19 +84,19 @@ class UAV{
   set<Point, PointCompare> states;
   map<Point, double, PointCompare> reward;
   vector<Orientation> actlist;
-  //  unordered_map<Point, unordered_map<Orientation, vector<pair<double, Point>>>> transitions;
   map<Point, map<Orientation, vector<pair<double, Point>>, OrientationCompare>, PointCompare> transitions;
   double gamma;
   map<Point, vector<Orientation>, PointCompare> actions;
   vector<Point> terminals;
   vector<Point> nstates;
   int row, coll;
+
 public:
+
   UAV(vector<vector<double>> grid, vector<Point> terminals, Point init=Point(0,0), double gamma=0.99):gamma(gamma), terminals(terminals), row(grid.size()), coll(grid[0].size()){
     for (int i =0; i<grid.size(); i++){
       for (int j =0; j<grid[0].size(); j++){
 	if (grid[i][j]) {
-	  //Point * p= new Point(i,j);
 	  Point p (i,j);
 	  states.insert(p);
 	  reward[p] = grid[i][j];
@@ -102,9 +113,9 @@ public:
 
     for (Point state: states){
       auto it = find(terminals.begin(), terminals.end(), state); 
-      if (it!=terminals.end()) {actions[state]=vector<Orientation>(); }//cout<<state.getX()<<","<<state.getY()<<endl;}
-      else {actions[state]=actlist; }//for (int i =0; i<actions[state].size(); i++) cout<<actions[state][i];cout<<endl;}
-      //actions[state]=actlist;
+      if (it != terminals.end()) {actions[state]=vector<Orientation>(); }
+      else {actions[state]=actlist; }
+      
     }
 
     for (Point s: states){
@@ -125,24 +136,20 @@ public:
   auto getNstates(){return nstates;}
   auto getRow(){return row;}
   auto getColl(){return coll;}
+
   vector<pair<double, Point>> calculateT(Point state, Orientation action){
-    // if (action){
+   
     vector<pair<double, Point>> c={{0.85, takeAction(state, action)},
 				   {0.075, takeAction(state, turn_right(action))},
 				   {0.075, takeAction(state, turn_left(action))}}; 
     return c;
-
-    //}else{
-    // vector<pair<double, Point>> c ={{0, state}};
-    // return c;
-    //}
     
   }
 
   Point takeAction(Point state, Orientation action){
     Point state1 = state.add(action);
     return states.find(state1)!=states.end()?state1:state;
-    //return state1;
+ 
   }
   vector<pair<double, Point>> T(Point state, Orientation action){
     return transitions[state][action];
@@ -194,8 +201,8 @@ map<Point, double, PointCompare> value_iteration(UAV uav, double epsilon= 0.001)
 
   }
 
-
 }
+
 double EUY (Orientation action, Point state, map<Point, double, PointCompare> U, UAV uav){
    
 
@@ -234,40 +241,29 @@ map<Point, Orientation, PointCompare> best_policy(UAV uav, map<Point, double, Po
 
   auto a = uav.getActions();
   for (auto state: uav.getStates()){
-    //cout<<uav.getActions()[state][0];
+
     map <double, Orientation> table;
     double value=numeric_limits<double>::max()*(-1);
-    //    cout<<"for"<<state.getX()<<","<<state.getY()<<":"<<endl;
-    for (auto action: a[state]){
-      //      cout<<(int)action<<endl;
-      double euv=EUY(action, state, U, uav);
-      //cout<<"hi"<<endl;
-      //      cout<<euv<<","<<(int)action<<endl;
-      //  cout<<state.getX()<<","<<state.getY()<<endl;
-      table[euv]=action;
 
-      //cout<<"v"<<value<<endl;
-      //cout<<"e"<<euv<<endl;
-            if ( value < euv ) {value=euv;}
+    for (auto action: a[state]){
+
+      double euv=EUY(action, state, U, uav);
+      table[euv]=action;
+      if ( value < euv ) {value=euv;}
     }
 
-    //    for (auto c: table)
-      //cout<<c.first<<","<<c.second<<endl;
-      //cout<<"value "<<value<<endl;
     cout<<state.getX()<<","<<state.getY()<<endl;
     cout<<"EUV"<<value<<endl;
     policy[state]=table[value];
-    //    cout<<(int)table[value]<<endl;
+    
   }
   return policy;
 
 }
 
 map<Point, double, PointCompare> &policy_evaluation(map<Point, Orientation, PointCompare> p, map<Point, double, PointCompare> &U, UAV &uav, int k=230){
-  //  int j;
+
   auto R = uav.getReward();
-  //for (auto r: R) cout<<"R "<<r.second<<endl;
-  //cin>>j;
   auto T = uav.getTransitions();
   auto gamma = uav.getGamma();
   auto S = uav.getStates();
@@ -280,24 +276,18 @@ map<Point, double, PointCompare> &policy_evaluation(map<Point, Orientation, Poin
       for (auto t: T[state][P[state]]){
 
 	sum+= t.first*U[t.second];
-	//cout<<"tf  "<<t.first<<endl;
-	//cout<<"sum  "<<sum<<endl;
-	//if (sum>20) cin>>j;
       }
-      //      cout<<"sum "<<sum<<endl;
-      //cout<<R[state]<<",,"<<gamma<<","<<sum<<endl;
-      //if (sum>20)  cin>>j;
       U[state]= R[state] + gamma*sum;
 
    }
 
   }
-  for (auto u: U) cout<<u.first.getX()<<","<<u.first.getY()<<":"<<u.second<<endl;
+
   return U;
 
 }
 
-map<Point, Orientation, PointCompare> policy_iteration(UAV uav){
+pair<map<Point, Orientation, PointCompare>, map<Point, double, PointCompare>> policy_iteration(UAV uav){
   auto S = uav.getStates();
   auto a = uav.getActions();
   map <Point, double, PointCompare> U;
@@ -306,58 +296,53 @@ map<Point, Orientation, PointCompare> policy_iteration(UAV uav){
   for (Point state: S) {
     U[state] =0; 
     p[state] =(Orientation) (rand()%(sizeof(Orientation)));
-    //   p[state]=(Orientation)0;
-    //cout<<a[state].size();
   }
-  //  for (auto u: U) cout<<"u  "<<u.second<<endl;
 
-  int a1;
-  //  cin>>a1;
+
+
+
   int unchanged;
   while (true){
 
     U = policy_evaluation(p, U, uav);
     unchanged ++;
     for (auto state: S){
-    //cout<<uav.getActions()[state][0];
+
     map <double, Orientation> table;
     double value=numeric_limits<double>::max()*(-1);
-    //cout<<"for"<<state.getX()<<","<<state.getY()<<":"<<endl;
+
       for (auto action: a[state]){
-      //      cout<<(int)action<<endl;
+
 	double euv=EUY(action, state, U, uav);
-      //cout<<"hi"<<endl;
-      //      cout<<euv<<","<<(int)action<<endl;
-      //  cout<<state.getX()<<","<<state.getY()<<endl;
 	table[euv]=action;
 
-	//      cout<<"v"<<value<<endl;
-	//cout<<"e"<<euv<<endl;
         if ( value < euv ) {value=euv;}
       }
 
-    //    for (auto c: table)
-      //cout<<c.first<<","<<c.second<<endl;
-      //cout<<"value "<<value<<endl;
-  
       if (table[value]!= p[state]){
 	p[state]=table[value];
 	unchanged = 0;
       }
   
     }
-    if (unchanged>0) return p;
+    if (unchanged>0) return {p,U};
   }
 }
 
-void printPolicy(map<Point, Orientation, PointCompare> p, UAV uav){
+void printPolicy(map<Point, Orientation, PointCompare> p, map<Point, double, PointCompare> V, UAV uav){
 
   map<Point, char, PointCompare> prepare;
   
+  map<Point, double, PointCompare> value=V;
 
-
+  //    for (auto a: value) cout<<a.second;
+  
   stack<vector<pair<Point, char>>> s;
   vector<pair<Point, char>> v;
+
+  stack<vector<double>> s1;
+  vector<double> v1;
+
   auto nstate = uav.getNstates();
   auto terminal = uav.getTerminal();
   auto col = uav.getColl();
@@ -365,19 +350,19 @@ void printPolicy(map<Point, Orientation, PointCompare> p, UAV uav){
       switch(policy.second){
 
       case ::left: prepare[policy.first]='<';break;
-      case ::up: prepare[policy.first]='o';break;
+      case ::up: prepare[policy.first]='^';break;
       case ::right: prepare[policy.first]='>'; break;
-      case ::down: prepare[policy.first]= 'l';break;
+      case ::down: prepare[policy.first]= 'v';break;
 
 
       }
 
     } 
-  for (Point s: nstate) prepare[s]='.';
-  for (Point s: terminal) prepare[s]='.';
+  for (Point st: nstate) {prepare[st]='.'; value[st]=0;}
+  for (Point st: terminal) {prepare[st]='.';}
   
   
-  for (auto n: terminal) cout<<n.getX()<<", "<<n.getY()<<endl;
+
   int count=0;
   for (pair<Point, char> policy: prepare){
     
@@ -400,7 +385,33 @@ void printPolicy(map<Point, Orientation, PointCompare> p, UAV uav){
     }
       cout<<endl;
   }
+  cout<<endl;
 
+  count=0;
+  
+  for (pair<Point, double> val: value){
+    
+    v1.push_back(val.second);
+
+    if(count==(col-1)){
+      s1.push(v1);
+      v1.clear();
+      count=-1;
+    }
+    count++;
+
+  }
+  while (!s1.empty()){
+
+    auto val = s1.top();
+    s1.pop();
+    for (auto va:val){
+      cout<<va<<" ";
+    }
+      cout<<endl;
+  }
+
+  
 }
 
 
@@ -410,28 +421,17 @@ int main(){
 				 {-0.05, -0.05, -0.05, -0.05},
 				 {-0.05, NULL,-0.05, -0.05},
 				 {-1, -0.05,-0.05, +1}};
-
-  vector<Point> terminal = {Point(3,0), Point(3,3), Point(0,3)};
-  
   /*
   vector<vector<double>> grid = {{-0.04, -0.04, -0.04, -0.04},
 				 {-0.04, NULL, -0.04, -1},
 				 {-0.04, -0.04, -0.04, +1}};
   vector<Point> terminal = {Point(1,3), Point(2,3)};
-
   */
+  vector<Point> terminal = {Point(3,0), Point(3,3), Point(0,3)};
+  
   UAV uav(grid, terminal);
   auto policy = policy_iteration(uav);
-  //  auto policy=best_policy(uav, value_iteration(uav,0.001));
-  // auto a = value_iteration(uav);
-  // for (auto u: a){
-    
-  //cout<<"("<<u.first.getX()<<","<<u.first.getY()<<"),"<<u.second<<endl;
-
-  //}
-        for (auto p:policy)
-      cout<<"("<<p.first.getX()<<","<<p.first.getY()<<"),"<<p.second<<endl;
-	printPolicy(policy, uav);
+  printPolicy(policy.first, policy.second, uav);
   return 0;
 }
 								      

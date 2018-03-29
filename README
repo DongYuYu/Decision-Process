@@ -1,0 +1,21 @@
+811790129 Dong Yu
+
+
+Instruction:
+
+1.To Compile, simply run>> g++ dp.cpp
+
+2.The following output will be gereated.
+3.Policy:
+.>>.
+v.>^
+>>>v
+>>>.
+
+from bottm left, we follow the trajectory {>,>,>} will reach the green dot.
+
+converged value function:
+-1       0.854416 0.923987 1 
+0.663051 0        0.860346 0.923987 
+0.730348 0.800217 0.864717 0.929536 
+0.777563 0.850387 0.924337 1 
